@@ -1,0 +1,3 @@
+"0","  binary_dummies <- dummy_cols(binary_cat,remove_first_dummy=TRUE)"
+"0","  binary_dummies <- binary_dummies[,-c(1:length(binary_cat_colnames))]"
+"0","  head(binary_dummies)"

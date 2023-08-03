@@ -1,0 +1,4 @@
+"0","Veg_consumption_Group_dum <- model.matrix(~Veg_consumption_Group,data=non.binary_cat)"
+"2","Error in eval(predvars, data, env) : 
+  object 'Veg_consumption_Group' not found
+"

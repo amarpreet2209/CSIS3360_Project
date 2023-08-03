@@ -1,0 +1,7 @@
+"0","# Bar plot for ""Num_main_meals"""
+"0","ggplot(df, aes(x = Num_main_meals)) +"
+"0","  geom_histogram(binwidth = 1, fill = ""steelblue"", color = ""white"") +"
+"0","  labs(title = ""Distribution of Number of Main Meals"","
+"0","       x = ""Number of Main Meals"","
+"0","       y = ""Frequency"") +"
+"0","  theme_minimal()"

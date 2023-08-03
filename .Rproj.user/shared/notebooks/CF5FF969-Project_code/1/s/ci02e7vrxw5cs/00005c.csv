@@ -1,0 +1,7 @@
+"0","# Bar plot for ""family_history_with_overweight"""
+"0","ggplot(df, aes(x = family_history_with_overweight)) +"
+"0","  geom_bar(fill = ""steelblue"") +"
+"0","  labs(title = ""Family History with Overweight"","
+"0","       x = ""Family History"","
+"0","       y = ""Count"") +"
+"0","  theme_minimal()"

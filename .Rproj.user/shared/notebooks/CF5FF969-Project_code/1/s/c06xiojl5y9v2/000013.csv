@@ -1,0 +1,6 @@
+"0","# Filter the data frame to consider only strong and moderate correlation"
+"0","strong_moderate_cor <- cor_df %>%"
+"0","  filter(abs(Correlation) >= 0.45)"
+"0",""
+"0","# Print the filtered correlation coefficients as a dataframe"
+"0","print(strong_moderate_cor)"

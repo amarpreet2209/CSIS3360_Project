@@ -1,0 +1,5 @@
+"0","ggplot(df_obese, aes(x = Age)) +"
+"0","  geom_density(fill = ""lightblue"", alpha = 0.7) +"
+"0","  labs(title = ""Distribution of Age for Obese Individuals"","
+"0","       x = ""Age"","
+"0","       y = ""Density"")"

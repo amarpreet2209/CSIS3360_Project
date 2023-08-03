@@ -1,0 +1,2 @@
+"0","binary_cat <- df[, binary_cat_colnames]"
+"0","non.binary_cat<- df[, non.binary_cat_colnames]"

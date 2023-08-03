@@ -1,0 +1,4 @@
+"0","numeric_colnames <- c(""Age"", ""Num_main_meals"", ""Amount_of_water"", ""Physical_act_freq"", ""Tech_usage_time_Hours"", ""bmi"")"
+"0",""
+"0","numeric_df <- df[,numeric_colnames]"
+"0","head(numeric_df,2)"

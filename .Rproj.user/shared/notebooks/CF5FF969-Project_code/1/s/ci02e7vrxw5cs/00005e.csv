@@ -1,0 +1,8 @@
+"0",""
+"0","# Bar plot for ""Freq_High_Cal_food"""
+"0","ggplot(df, aes(x = Consumes_High_Cal_food)) +"
+"0","  geom_bar(fill = ""steelblue"") +"
+"0","  labs(title = ""High-Calorie Food Consumption"","
+"0","       x = ""Comsumption"","
+"0","       y = ""Count"") +"
+"0","  theme_minimal()"

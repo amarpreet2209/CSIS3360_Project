@@ -1,0 +1,7 @@
+"0","# Calculating BMI"
+"0","df$bmi <- df$Weight / (df$Height^2)"
+"0",""
+"0","# Removing 'Height' and 'Weight' columns"
+"0","df <- subset(df, select = -c(Height, Weight))"
+"0",""
+"0","head(df, 2)"

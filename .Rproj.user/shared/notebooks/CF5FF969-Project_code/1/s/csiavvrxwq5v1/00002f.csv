@@ -1,0 +1,4 @@
+"0","df <- df %>%"
+"0","  mutate(Obesity_Level = ifelse(Obesity_Level %in% c(""Normal_Weight"", ""Insufficient_Weight""), ""Non-Obese"", ""Obese""))"
+"0",""
+"0","head(df,2)"

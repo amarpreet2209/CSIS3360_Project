@@ -1,0 +1,6 @@
+"0","ggplot(df, aes(x = Obesity_Level, y = Physical_act_freq, fill = Obesity_Level)) +"
+"0","  geom_boxplot() +"
+"0","  labs(title = ""Physical Activity Frequency by Obesity Status"","
+"0","       x = ""Obese"","
+"0","       y = ""Physical Activity Frequency"") +"
+"0","  scale_fill_manual(values = c(""Non-Obese"" = ""lightblue"", ""Obese"" = ""red""))"

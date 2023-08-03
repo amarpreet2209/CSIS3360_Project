@@ -1,0 +1,680 @@
+---
+title: "Project_code"
+author: "Amarpreet Singh"
+date: "2023-07-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Hypothesis
+
+Null Hypothesis (H0): There is no significant relationship between lifestyle choices (smoking status, number of main meals a day, frequency of physical exercise, and main mode of transportation) and obesity in the population.
+
+Alternative Hypothesis (H1): There is a significant relationship between at least one lifestyle choice (smoking status, number of main meals a day, frequency of physical exercise, or main mode of transportation) and obesity in the population.
+
+
+# Data Description:
+
+1. Gender: Gender of the individual, which can be male or female.
+
+2. Age: Age of the individual in years.
+
+3. Height: Height of the individual in centimeters.
+
+4. Weight: Weight of the individual in kilograms.
+
+5. Family history with overweight: Indicates whether the individual has a family history of overweight or obesity. Values can be classified as "yes" or "no".
+
+6. FAVC: FAVC stands for "Frequency of consumption of high-caloric food". Value can be "yes" or "no".
+
+7. FCVC: FCVC stands for "Frequency of consumption of vegetables". Value can be from 1 to 3, with 1 indicating rarely, and 3 indicating     frequently.
+
+8. NCP: NCP stands for "Number of main meals". Value can be from 1 to 3.
+
+9. CAEC: CAEC stands for "Consumption of food between meals". Value can be from 1 to 3, with 1 indicating no consumption and 3 indicating frequent consumption.
+
+10. SMOKE: Indicates whether the individual smokes or not. Values can be classified as "yes" or "no".
+
+11. CH2O: CH2O represents the amount of water the individual consumes daily in liters.
+
+12. SCC: SCC stands for "Caloric beverages consumption". Value can be "yes" or "no".
+
+13. FAF: FAF stands for "Physical activity frequency". Value can be from 10 to 3, with 0 indicating no physical activity and 3 indicating high frequency.
+
+14. TUE: TUE stands for "Time using technology devices" in hours.
+
+15. CALC: CALC stands for "Consumption of alcohol". Value can be from 1 to 3, with 1 indicating no consumption and 3 indicating frequent consumption.
+
+16. MTRANS: MTRANS stands for "Mode of transportation used". It can take values such as "Walking," "Bike," "Motorbike," "Public_Transportation," or "Automobile".
+
+17. NObeyesdad: NObeyesdad is the target column that represents the weight status of the individual. It classifies individuals into different weight categories, such as "Insufficient_Weight," "Normal_Weight," "Overweight_Level_I," "Overweight_Level_II," "Obesity_Type_I," "Obesity_Type_II," and "Obesity_Type_III."
+
+
+# Step 0.1: Installing packages
+
+```{r}
+# install.packages("dplyr")
+# install.packages("fastDummies")
+# install.packages("adabag")
+# install.packages("ada")
+# install.packages("xgboost")
+# install.packages("neuralnet")
+# install.packages("e1071")  # svm
+# install.packages("naivebayes")
+# install.packages("rpart")  # decision tree
+# install.packages(rpart.plot)
+# install.packages("broom")
+# install.packages("data.table")
+
+```
+
+# Step 0.2: Importing packages
+
+```{r}
+library(dplyr)
+library(fastDummies)
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(MASS)
+library(data.table)
+
+library(ada)
+library(adabag)
+library(xgboost)
+library(neuralnet)
+library(e1071)
+library(naivebayes)
+library(rpart)
+library(rpart.plot)
+library(broom)
+library(AICcmodavg)
+```
+
+# Step 1: Importing dataset
+
+```{r}
+data_org <- read.csv("ObesityDataSet.csv", header = TRUE, sep = ',')
+head(data,2)
+cat("Initially the dataset has", dim(data)[1], "rows")
+```
+
+## Step 1.2 Renaming columns giving more desciptive column names
+```{r}
+data <- data_org %>%
+  rename(
+    Consumes_High_Cal_food = FAVC,
+    Veg_consumption_Group = FCVC,
+    Num_main_meals = NCP,
+    Consumption_Food_between_meals_Group = CAEC,
+    Amount_of_water = CH2O,
+    Cal_bev_consumes = SCC,
+    Physical_act_freq = FAF,
+    Tech_usage_time_Hours = TUE,
+    consumption_alcohol = CALC,
+    Mode_of_transport = MTRANS,
+    Obesity_Level = NObeyesdad
+  )
+
+head(data,2)
+```
+
+
+## Step 1.3: Exploring the dataframe
+
+```{r}
+str(data)
+```
+
+We can see that the data has both numerical and string value columns
+
+# Step 2: Data Cleaning
+
+## Step 2.1:Handling missing values
+
+```{r}
+data[data == ""] <- NA #Making the blank cells NA
+blank_counts <- colSums(is.na(data))
+print(blank_counts)
+```
+
+We can observe that our data has NA values.
+
+### Step 2.1.1 : Filling missing values in Height and Weight with mean values
+
+```{r}
+data$Height[is.na(data$Height)] <- mean(data$Height, na.rm = TRUE)
+data$Weight[is.na(data$Weight)] <- mean(data$Weight, na.rm = TRUE)
+```
+
+### Step 2.1.2 : Removing records with NA values in other columns from df
+
+```{r}
+df <- na.omit(data)
+cat("Clean data has",dim(df)[1],"rows")
+```
+
+# Step 3: Data Exploration - Summary Statistic
+
+```{r}
+summary(df)
+```
+
+-------------------------------------------------------------------------------------
+# Step 4: Data Visualisations
+
+## Step 4.1: Univariate Analysis
+## Step 4.1.1: Age
+
+```{r}
+# Boxplot to visualize the distribution of Age
+ggplot(df, aes(x = Age)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
+  labs(title = "Distribution of Age",
+       x = "Age",
+       y = "Frequency") +
+  theme_minimal()
+```
+
+
+Most of the observations in the dataset are quite young around 20 years old.
+
+## Step 4.1.2: Family History of Overweight and Frequency of High-Calorie Food Consumption
+```{r}
+# Bar plot for "family_history_with_overweight"
+ggplot(df, aes(x = family_history_with_overweight)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Family History with Overweight",
+       x = "Family History",
+       y = "Count") +
+  theme_minimal()
+
+# Bar plot for "Freq_High_Cal_food"
+ggplot(df, aes(x = Consumes_High_Cal_food)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "High-Calorie Food Consumption",
+       x = "Comsumption",
+       y = "Count") +
+  theme_minimal()
+```
+
+Most subjects already had family history of overweight and they frequently consumed high calorie food.
+
+## Step 4.1.3: Number of Main Meals and Consumption of Food between Meals
+
+```{r}
+# Bar plot for "Num_main_meals"
+ggplot(df, aes(x = Num_main_meals)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
+  labs(title = "Distribution of Number of Main Meals",
+       x = "Number of Main Meals",
+       y = "Frequency") +
+  theme_minimal()
+
+
+# Bar plot for "Consumption_Food_between_meals"
+ggplot(df, aes(x = Consumption_Food_between_meals_Group)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Consumption of Food between Meals",
+       x = "Consumption",
+       y = "Frequency") +
+  theme_minimal()
+```
+
+Most subjects consume 3 main meals a day and food consumption between meals only happens sometimes.
+
+
+## Step 4.1.3: Mode of Transport
+```{r}
+ggplot(df, aes(x = "", fill = Mode_of_transport)) +
+  geom_bar(width = 1) +
+  coord_polar("y", start = 0) +
+  labs(title = "Mode of Transport",
+       fill = "Mode of Transport") +
+  theme_minimal()
+```
+Most people use Public transportation
+
+
+# Step 5: Changing multi-class to binary classes for further analysis
+
+```{r}
+df <- df %>%
+  mutate(Obesity_Level = ifelse(Obesity_Level %in% c("Normal_Weight", "Insufficient_Weight"), "Non-Obese", "Obese"))
+
+head(df,2)
+```
+
+# Step 6: Bivariate Analysis
+## Step 6.1: Gender and Obesity_Level
+
+```{r}
+# Filter the data to include only rows where isObese is "Obese"
+df_obese <- df %>%
+  filter(Obesity_Level == "Obese")
+
+df_non_obese <- df %>%
+  filter(Obesity_Level == "Non-Obese")
+
+
+# Create the bar plot
+ggplot(df_obese, aes(x = Gender, fill = Gender)) +
+  geom_bar() +
+  labs(title = "Bar Plot of Gender for Obese Individuals",
+       x = "Gender",
+       y = "Frequency") +
+  scale_fill_manual(values = c("Male" = "lightblue", "Female" = "pink"))
+```
+The difference between Number of males and females who are obese is not too high.
+
+
+## Step 6.2: Age and Obesity_Level
+
+```{r}
+ggplot(df_obese, aes(x = Age)) +
+  geom_density(fill = "lightblue", alpha = 0.7) +
+  labs(title = "Distribution of Age for Obese Individuals",
+       x = "Age",
+       y = "Density")
+```
+
+Looks like most people who are obese in our data are young which can also be explained by the fact that most people in our dataset are young as well.
+
+
+## Step 6.3: Physical_act_freq and Obesity_Level
+
+```{r}
+ggplot(df, aes(x = Obesity_Level, y = Physical_act_freq, fill = Obesity_Level)) +
+  geom_boxplot() +
+  labs(title = "Physical Activity Frequency by Obesity Status",
+       x = "Obese",
+       y = "Physical Activity Frequency") +
+  scale_fill_manual(values = c("Non-Obese" = "lightblue", "Obese" = "red"))
+```
+It appears like the ones who are obese engage in physical activity lesser number of times than the ones who are not obese.
+
+
+## Step 6.4: Mode_of_transport and Obesity_Level
+
+```{r}
+ggplot(df, aes(x = Mode_of_transport, fill = Obesity_Level)) +
+  geom_bar() +
+  labs(title = "Distribution of Obesity Status by Mode of Transport",
+       x = "Mode of Transport",
+       y = "Count") +
+  scale_fill_manual(values = c("Non-Obese" = "lightblue", "Obese" = "red"))
+```
+It appears most of our subjects use Automobile and Public transport as mode of transport and for both majority is obese.
+
+---------------------------------------------------------------------------
+
+
+# Step 7: Data Processing
+
+## Step 7.1: Changing Height from cm to m
+
+```{r}
+df <- df %>% mutate(Height = Height/100)
+head(df,2)
+```
+
+## Step 7.2: Adding column bmi based on formula bmi= w/h^2. Then we can remove Weight and Height
+
+```{r}
+# Calculating BMI
+df$bmi <- df$Weight / (df$Height^2)
+
+# Removing 'Height' and 'Weight' columns
+df <- subset(df, select = -c(Height, Weight))
+
+head(df, 2)
+
+```
+
+
+## Step 7.3: Changing values of Veg_consumption_Group from Group number to Group Name
+```{r}
+reverse_mapping <- c("1" = "rarely", "2" = "sometimes", "3" = "frequently")
+
+df$Veg_consumption_Group <- reverse_mapping(df$Veg_consumption_Group)
+
+head(df,2)
+```
+
+
+
+-------------------------------------------------------------------------------
+# Step 8: Transforming categorical columns
+
+## Step 8.1: Binary and non-binary categorical columns
+
+```{r}
+binary_cat_colnames <- c("Gender",
+                         "family_history_with_overweight",
+                         "Consumes_High_Cal_food",
+                         "SMOKE",
+                         "Cal_bev_consumes",
+                         "Obesity_Level")
+
+
+
+non.binary_cat_colnames <- c("Veg_consumption_Group",
+                             "Consumption_Food_between_meals_Group",
+                             "consumption_alcohol",
+                             "Mode_of_transport")
+```
+
+```{r}
+binary_cat <- df[, binary_cat_colnames]
+non.binary_cat<- df[, non.binary_cat_colnames]
+```
+
+## Step 8.2: Getting dummies for binary_cats
+
+```{r}
+  binary_dummies <- dummy_cols(binary_cat,remove_first_dummy=TRUE)
+  binary_dummies <- binary_dummies[,-c(1:length(binary_cat_colnames))]
+  head(binary_dummies)
+```
+
+## Step 8.3: Transforming non-binary categorical colums to dummies using model.matrix() function
+
+```{r}
+Veg_consumption_Group_dum <- model.matrix(~Veg_consumption_Group,data=non.binary_cat)
+
+Consumption_Food_between_meals_Group_dum <- model.matrix(~Consumption_Food_between_meals_Group,data=non.binary_cat)
+
+consumption_alcohol_dum <- model.matrix(~consumption_alcohol,data=non.binary_cat)
+
+Mode_of_transport_dum <- model.matrix(~Mode_of_transport,data=non.binary_cat)
+
+
+non_binary_dum_df <- cbind(
+  Veg_consumption_Group_dum[,-c(1)],
+  Consumption_Food_between_meals_Group_dum[,-c(1)],
+  consumption_alcohol_dum[,-c(1)],
+  Mode_of_transport_dum[,-c(1)])
+
+head(non_binary_dum_df)
+
+```
+
+## Step 8.4: Numerical columns
+
+```{r}
+head(df,2)
+```
+
+
+```{r}
+numeric_colnames <- c("Age", "Num_main_meals", "Amount_of_water", "Physical_act_freq", "Tech_usage_time_Hours", "bmi")
+
+numeric_df <- df[,numeric_colnames]
+head(numeric_df,2)
+```
+
+## Step 8.5: Combining the processed columns column-wise
+
+```{r}
+# final_df <- cbind(binary_dummies, non_binary_dum_df, df_numeric_standardized)
+final_df <- cbind(binary_dummies, non_binary_dum_df, numeric_df)
+head(final_df,3)
+```
+
+# Step 9: Correlation
+
+## Step 9.1: Checking correlation with Obesity_Level_Obese
+
+```{r}
+
+# Select the numeric variables for correlation
+numeric_variables <- final_df[, sapply(final_df, is.numeric)]
+
+# Calculate the correlation of Obesity_Level_Obese with other numeric variables
+cor_list <- lapply(numeric_variables, function(x) cor(final_df$Obesity_Level_Obese, x))
+
+# Create a data frame to store the results
+cor_df <- data.frame(Variable = names(numeric_variables), Correlation = unlist(cor_list))
+
+# Remove the row names from the data frame
+rownames(cor_df) <- NULL
+
+# Sort the data frame by absolute correlation values in descending order
+cor_df <- cor_df %>%
+  arrange(desc(abs(Correlation)))
+
+# Print the sorted correlation coefficients as a dataframe
+print(cor_df)
+
+```
+## Step 9.2: Filtering only strong and moderate correlation
+
+```{r}
+# Filter the data frame to consider only strong and moderate correlation
+strong_moderate_cor <- cor_df %>%
+  filter(abs(Correlation) >= 0.45)
+
+# Print the filtered correlation coefficients as a dataframe
+print(strong_moderate_cor)
+```
+Looking at the correlation index it seems like bmi has the correlation with the being obese. Other factors that are highly correlated are if the family has history of overweight and if the subjects consumed food between meals - frequently or sometimes.
+
+But, correlation does not explain causation. So, let's create an explanatory model to explain the variables of which obesity can be dependent.
+
+
+# Step 10:  Explanatory Model
+
+## Step 10.1: Using GLM (Generalized Linear Model) function
+
+```{r}
+log_reg_resuls <- glm(Obesity_Level_Obese ~., 
+                      data=final_df,
+                      family=binomial(link="logit"))
+summary(log_reg_resuls, scipen=999)
+```
+
+## Step 10.2: Overall Fit (Omnibus Test) Compute the difference between
+
+null deviance and residual deviance the computed statistics follows a Chi-squared distribution
+
+```{r}
+with(log_reg_resuls, null.deviance-deviance)
+```
+
+## Step 10.3: Computing the p-value for the Chi-squared statistic
+
+```{r}
+options(scipen=999)
+with(log_reg_resuls,
+     pchisq( null.deviance-deviance, 
+             df.null-df.residual, 
+             lower.tail = FALSE)
+     )
+```
+
+## Step 10.4: Result Interpretation
+
+The computed Chi-squared statistic is 2329.231 (p=0), which means that the model is statistically significant. Taking these into consideration while creating the model and including them as predictors shall help the predictions. These variables all together lead to a reduction of deviance statistic from the null model value of 2419.912 to the final value of 90.681. Since the deviance statistic measures "Lack of fit", Therefore, these variables improve the fit of the model.
+
+### Individual Coefficients
+
+From observing the results of analysis, we can concluded the most of the predictors are not statistically significant.
+
+The ones which were significant are :
+
+1. Gender_Male is statistically significant. Its coefficient is more than one but negative. This means, given that the subject is male instead, the log-odds of being obese decreases by factor of 1.667.
+
+2. Consumption_Food_between_mealsFrequently is statistically significant. Compared to people who consume Food between meals 'Always', the ones who do 'Frequently' have  3.52 times higher log-odds of being obese.
+
+3. Consumption_Food_between_mealsSometimes is statistically significant. Compared to people who consume Food between meals 'Always', the ones who do 'Soemtimes' have 4.73 times higher log-odds of being obese.
+
+4. Freq_veg_consumption is statistically significant. One-unit increase in the frequency of consumption of vegetables decreases the log-odds of being Obese by -1.496 units.
+
+5. BMI is statistically significant. One-unit increase in the bmi increase the log-odds of being obese by 4.328.
+
+
+## Step 10.5: Model refinement
+
+Let's refine the model by gradually removing predictors that don't improve the model so much, thereby simplifying the explanatory model.
+
+```{r}
+step_model_res <- suppressWarnings(stepAIC(log_reg_resuls, direction = "backward", trace = FALSE))
+
+options(scipen = 999)
+summary(step_model_res)
+```
+
+Now we tried improving our model by identifying the most relevant predictor variables that significantly contribute to explaining the variation in the response variable Obesity_Level_Obese . This process helps in constructing a more succinct and interpretable model by incorporating only the predictors that exert a meaningful influence on the response.
+
+
+
+## Step 10.6: Verifying if our new model is actually an improvement using Akaike Information Criterion (AIC)
+```{r}
+models <- list(log_reg_resuls,step_model_res)
+
+model.names <- c("log_reg_resuls","step_model_res")
+
+aictab(cand.set = models, modnames = model.names)# Prediction / Classification Model
+```
+
+Since the new model step_model_res has lower AIC value, we will choose it as the best fitting model.
+
+
+# Step 11: Prediction
+
+## Function that takes person information as dataframe, does all transformations and predicts the probability of being obese. The threshold is set to 0.5. Based on this it returns the predicted class- Obese or Non-Obese.
+```{r}
+predict_obesity <- function(data_frame, model) {
+  # Make necessary transformations
+  data_frame <- data_frame %>% mutate(Height = Height/100)
+  data_frame$bmi <- data_frame$Weight / (data_frame$Height^2)
+  data_frame <- subset(data_frame, select = -c(Height, Weight))
+  
+  # Predict probabilities
+  predicted_probs <- predict(model, newdata = data_frame, type = "response")
+  
+  # Apply threshold and classify as "Obese" or "Non-Obese"
+  predictions <- ifelse(predicted_probs >= 0.5, "Obese", "Non-Obese")
+  
+  return(predictions)
+}
+
+```
+
+
+
+Now let's predict for three individuals:
+----------------
+Example 1: Jane:
+
+Gender: Female
+Age: 28
+Height: 165 cm
+Weight: 58 kg
+Family history with overweight: No
+FAVC: Yes
+FCVC: 2 (Sometimes)
+NCP: 3
+CAEC: 2 (Moderate consumption)
+SMOKE: No
+CH2O: 2.5 liters
+SCC: 2 (Moderate consumption)
+FAF: 2 (Moderate activity)
+TUE: 6 hours
+CALC: 1 (No consumption)
+MTRANS: Bike
+
+
+
+
+```{r}
+df_Jane = data.frame(
+  Gender_Male= 0,
+  Age= 28,
+  Height = 165,
+  Weight = 58,
+  family_history_with_overweight_yes = 0,
+  Consumes_High_Cal_food_yes = 1,
+  Veg_consumption_Grouprarely=0,
+  Veg_consumption_Groupsometimes=1,
+  NCP = 3,
+  Consumption_Food_between_meals_GroupFrequently=0,
+  Consumption_Food_between_meals_Groupno=0,
+  Consumption_Food_between_meals_GroupSometimes=1,
+  SMOKE_yes=0,
+  Amount_of_water=2.5,
+  Cal_bev_consumes_yes=1,
+  Physical_act_freq = 2,
+  Tech_usage_time_Hours=6,
+  consumption_alcoholno=1,
+  Mode_of_transportBike=1,
+  Mode_of_transportMotorbike=0,                   
+  Mode_of_transportPublic_Transportation=0,
+  Mode_of_transportWalking=0
+)
+
+predict_obesity(df_Jane, step_model_res)
+```
+----------------
+Example 2: John
+
+Gender: Male
+Age: 35
+Height: 180 cm
+Weight: 85 kg
+Family history with overweight: Yes
+FAVC: Yes
+FCVC: 3 (Frequently)
+NCP: 2
+CAEC: 3 (Frequent consumption)
+SMOKE: No
+CH2O: 3.2 liters
+SCC: 3 (Frequent consumption)
+FAF: 3 (High frequency)
+TUE: 8 hours
+CALC: 3 (Frequent consumption)
+MTRANS: Automobile
+
+----------------
+Example 2: Lisa
+
+Gender: Female
+Age: 22
+Height: 155 cm
+Weight: 70 kg
+Family history with overweight: Yes
+FAVC: No
+FCVC: 1 (Rarely)
+NCP: 1
+CAEC: 1 (No consumption)
+SMOKE: No
+CH2O: 1.8 liters
+SCC: 1 (No consumption)
+FAF: 1 (Low activity)
+TUE: 5 hours
+CALC: 1 (No consumption)
+MTRANS: Public_Transportation
+
+
+Let's first create dataframes for these
+
+Gender: Female
+Age: 28
+Height: 165 cm
+Weight: 58 kg
+Family history with overweight: No
+FAVC: Yes
+FCVC: 2 (Sometimes)
+NCP: 3
+CAEC: 2 (Moderate consumption)
+SMOKE: No
+CH2O: 2.5 liters
+SCC: YES
+FAF: 2
+TUE: 6 hours
+CALC: 1 (No consumption)
+MTRANS: Bike
+
+

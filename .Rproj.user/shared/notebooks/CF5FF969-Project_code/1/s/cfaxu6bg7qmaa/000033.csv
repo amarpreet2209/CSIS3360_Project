@@ -1,0 +1,2 @@
+"0","data_org <- read.csv(""ObesityDataSet.csv"", header = TRUE, sep = ',')"
+"0","head(data,2)"

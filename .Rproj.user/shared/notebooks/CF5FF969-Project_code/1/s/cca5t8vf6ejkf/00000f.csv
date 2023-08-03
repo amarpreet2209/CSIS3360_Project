@@ -1,0 +1,2 @@
+"0","data$Height[is.na(data$Height)] <- mean(data$Height, na.rm = TRUE)"
+"0","data$Weight[is.na(data$Weight)] <- mean(data$Weight, na.rm = TRUE)"

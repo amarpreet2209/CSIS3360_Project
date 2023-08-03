@@ -1,0 +1,6 @@
+"0","ggplot(df, aes(x = """", fill = Mode_of_transport)) +"
+"0","  geom_bar(width = 1) +"
+"0","  coord_polar(""y"", start = 0) +"
+"0","  labs(title = ""Mode of Transport"","
+"0","       fill = ""Mode of Transport"") +"
+"0","  theme_minimal()"

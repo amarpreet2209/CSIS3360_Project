@@ -1,0 +1,7 @@
+"0","df <- na.omit(data)"
+"0","cat(""Clean data has"",dim(df)[1],""rows"")"
+"1","Clean data has"
+"1"," "
+"1","2101"
+"1"," "
+"1","rows"

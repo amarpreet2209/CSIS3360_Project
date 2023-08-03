@@ -1,0 +1,6 @@
+"0","reverse_mapping <- c(""1"" = ""rarely"", ""2"" = ""sometimes"", ""3"" = ""frequently"")"
+"0",""
+"0","df$Veg_consumption_Group <- reverse_mapping(df$Veg_consumption_Group)"
+"2","Error in reverse_mapping(df$Veg_consumption_Group) : 
+  could not find function ""reverse_mapping""
+"
