@@ -251,7 +251,7 @@ head(df,2)
 ## Step 6.1: Gender and Obesity_Level
 
 ```{r}
-# Filter the data to include only rows where isObese is "Obese"
+# Filter the data to include only rows where Obesity_Level is "Obese"
 df_obese <- df %>%
   filter(Obesity_Level == "Obese")
 
@@ -338,7 +338,7 @@ head(df, 2)
 ```{r}
 reverse_mapping <- c("1" = "rarely", "2" = "sometimes", "3" = "frequently")
 
-df$Veg_consumption_Group <- reverse_mapping(df$Veg_consumption_Group)
+df$Veg_consumption_Group <- reverse_mapping[df$Veg_consumption_Group]
 
 head(df,2)
 ```
@@ -563,11 +563,7 @@ predict_obesity <- function(data_frame, model) {
 
 ```
 
-
-
-Now let's predict for three individuals:
-----------------
-Example 1: Jane:
+Example 1:
 
 Gender: Female
 Age: 28
@@ -575,7 +571,7 @@ Height: 165 cm
 Weight: 58 kg
 Family history with overweight: No
 FAVC: Yes
-FCVC: 2 (Sometimes)
+FCVC: Yes
 NCP: 3
 CAEC: 2 (Moderate consumption)
 SMOKE: No
@@ -585,10 +581,6 @@ FAF: 2 (Moderate activity)
 TUE: 6 hours
 CALC: 1 (No consumption)
 MTRANS: Bike
-
-
-
-
 ```{r}
 df_Jane = data.frame(
   Gender_Male= 0,
@@ -617,7 +609,7 @@ df_Jane = data.frame(
 
 predict_obesity(df_Jane, step_model_res)
 ```
-----------------
+
 Example 2: John
 
 Gender: Male
@@ -631,14 +623,43 @@ NCP: 2
 CAEC: 3 (Frequent consumption)
 SMOKE: No
 CH2O: 3.2 liters
-SCC: 3 (Frequent consumption)
+SCC: Yes
 FAF: 3 (High frequency)
 TUE: 8 hours
-CALC: 3 (Frequent consumption)
+CALC: Yes
 MTRANS: Automobile
 
-----------------
-Example 2: Lisa
+
+```{r}
+df_John = data.frame(
+  Gender_Male= 1,
+  Age= 35,
+  Height = 180,
+  Weight = 85,
+  family_history_with_overweight_yes = 1,
+  Consumes_High_Cal_food_yes = 0,
+  Veg_consumption_Grouprarely=0,
+  Veg_consumption_Groupsometimes=0,
+  NCP = 2,
+  Consumption_Food_between_meals_GroupFrequently=1,
+  Consumption_Food_between_meals_Groupno=0,
+  Consumption_Food_between_meals_GroupSometimes=0,
+  SMOKE_yes=0,
+  Amount_of_water=3.2,
+  Cal_bev_consumes_yes=1,
+  Physical_act_freq = 3,
+  Tech_usage_time_Hours=8,
+  consumption_alcoholno=0,
+  Mode_of_transportBike=0,
+  Mode_of_transportMotorbike=0,                   
+  Mode_of_transportPublic_Transportation=0,
+  Mode_of_transportWalking=0
+)
+
+predict_obesity(df_John, step_model_res)
+```
+
+Example 3: Lisa
 
 Gender: Female
 Age: 22
@@ -651,30 +672,39 @@ NCP: 1
 CAEC: 1 (No consumption)
 SMOKE: No
 CH2O: 1.8 liters
-SCC: 1 (No consumption)
+SCC: No
 FAF: 1 (Low activity)
 TUE: 5 hours
-CALC: 1 (No consumption)
+CALC: 1
 MTRANS: Public_Transportation
 
 
-Let's first create dataframes for these
+```{r}
+df_Lisa = data.frame(
+  Gender_Male= 0,
+  Age= 22,
+  Height = 155,
+  Weight = 70,
+  family_history_with_overweight_yes = 1,
+  Consumes_High_Cal_food_yes = 0,
+  Veg_consumption_Grouprarely=1,
+  Veg_consumption_Groupsometimes=0,
+  NCP = 1,
+  Consumption_Food_between_meals_GroupFrequently=0,
+  Consumption_Food_between_meals_Groupno=1,
+  Consumption_Food_between_meals_GroupSometimes=0,
+  SMOKE_yes=0,
+  Amount_of_water=1.8,
+  Cal_bev_consumes_yes=0,
+  Physical_act_freq = 1,
+  Tech_usage_time_Hours=5,
+  consumption_alcoholno=1,
+  Mode_of_transportBike=0,
+  Mode_of_transportMotorbike=0,                   
+  Mode_of_transportPublic_Transportation=1,
+  Mode_of_transportWalking=0
+)
 
-Gender: Female
-Age: 28
-Height: 165 cm
-Weight: 58 kg
-Family history with overweight: No
-FAVC: Yes
-FCVC: 2 (Sometimes)
-NCP: 3
-CAEC: 2 (Moderate consumption)
-SMOKE: No
-CH2O: 2.5 liters
-SCC: YES
-FAF: 2
-TUE: 6 hours
-CALC: 1 (No consumption)
-MTRANS: Bike
-
+predict_obesity(df_Lisa, step_model_res)
+```
 

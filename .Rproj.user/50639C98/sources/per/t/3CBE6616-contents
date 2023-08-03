@@ -564,6 +564,9 @@ predict_obesity <- function(data_frame, model) {
 ```
 
 
+```{r}
+predict_obesity
+```
 
 Now let's predict for three individuals:
 ----------------
